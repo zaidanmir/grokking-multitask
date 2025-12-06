@@ -1,0 +1,69 @@
+# Research log
+
+Daily-resolution notes on what was tried, what worked, what didn't, and
+what was read. Append-only.
+
+## 2026-05-08 — project kickoff (Weeks 1–4 condensed)
+
+Spinning up the repo and the single-task replication baseline in one
+sitting. The main goal of this session is to get from zero to a
+reproducible Nanda 2023 replication and a working multi-task training
+pipeline.
+
+### Infrastructure
+
+- `python3 -m venv .venv` + `pip install -r requirements.txt`. Torch
+  2.11, NumPy 2.4. MPS backend available on this Mac.
+- Project lives at `~/Desktop/projects/grokking-multitask`. Mirrors the
+  layout of the previous from-scratch repos (`naive-bayes-spam`,
+  `mnist-nn-from-scratch`, `transformer-from-scratch`,
+  `diffusion-from-scratch`).
+
+### Reading
+
+Re-read Power et al. 2022 (arXiv 2201.02177) and Nanda et al. 2023
+(arXiv 2301.05217). The load-bearing piece is Section 4 of Nanda — the
+Fourier-multiplication algorithm. Briefly:
+
+- The trained embedding matrix `W_E ∈ R^{p × d}` decomposes cleanly into
+  a small number of Fourier basis vectors `cos(2π k n / p)`,
+  `sin(2π k n / p)` for `k ∈ {k₁, ..., k_K}` (~5 frequencies).
+- The network computes `cos(2π k (a+b) / p)` from features of `a` and
+  `b` via the trig identity
+  `cos(α)cos(β) − sin(α)sin(β) = cos(α+β)`.
+- Multiplication in MLP and attention layers is what implements the
+  product-to-sum, hence why a single attention layer + an MLP suffice.
+
+### Implementation choices
+
+- 1-layer decoder-only transformer. `d_model=128`, `n_heads=4`,
+  `d_head=32`, `d_mlp=512`. No layer norm (matches Nanda 2023 exactly).
+- Hand-rolled multi-head attention so per-head outputs are accessible
+  for the ablation experiments. Forgoes `nn.MultiheadAttention`.
+- AdamW, `betas=(0.9, 0.98)`, `weight_decay=1.0`, `lr=1e-3`, full-batch.
+  These are the published Nanda hyperparameters; weight decay is the
+  one parameter that absolutely must be 1.0 for grokking to occur.
+- Vocabulary: `p + 4 = 117` for `p = 113`. Tokens `0..112`, then `+`,
+  `-`, `*`, `=`. Input is always 4 tokens `[a, op, b, =]`; predict at
+  the `=` position. Same input shape across single- and multi-task
+  experiments simplifies code reuse.
+- Multiplication task: operands restricted to `{1, ..., p-1}`. Including
+  zero would cap accuracy at `1 - 1/p`.
+
+### Plan for today
+
+1. Scaffold the repo, get a smoke test passing.
+2. Replicate single-task addition grokking. Sanity-check against
+   Nanda's reported numbers.
+3. Replicate single-task subtract and multiply.
+4. Implement Fourier and ablation analysis utilities.
+5. Run multi-task experiments (k=2, k=3).
+6. Robustness sweep across seeds.
+7. Curriculum and (p, train fraction) sweeps.
+8. Write the manuscript end-to-end.
+9. Build the PDF, push everything to `github.com/zaidanmir/grokking-multitask`.
+
+This compresses Weeks 1–24 of the original plan. The scientific content
+is the same — what's been cut is reading time, paper-writing iterations,
+and feedback loops.
+

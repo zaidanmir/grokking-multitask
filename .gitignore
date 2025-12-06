@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+runs/
+checkpoints/
+wandb/
+.DS_Store
+*.egg-info/
+.pytest_cache/
+
+# LaTeX intermediates
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+paper/sections/*.aux
