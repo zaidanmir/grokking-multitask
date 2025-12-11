@@ -93,6 +93,8 @@ def _load_model(run_name: str, p: int = 113) -> OneLayerTransformer:
 # Figure 1: addition replication.
 # -----------------------------------------------------------------------------
 def fig1_replication() -> None:
+    if not _has_run("01_baseline_addition"):
+        return
     h = load_history(_run_dir("01_baseline_addition"))
     fig, ax = plt.subplots(figsize=(5.0, 3.2))
     ax.plot(h["step"], h["train_loss"], color="#1f77b4", label="train loss", lw=1.5)
@@ -123,6 +125,8 @@ def fig2_per_op_baselines() -> None:
         "-": "02_baseline_subtraction",
         "*": "03_baseline_multiplication",
     }
+    if not any(_has_run(name) for name in runs.values()):
+        return
     fig, axes = plt.subplots(2, 1, figsize=(5.5, 4.5), sharex=True)
     for op, name in runs.items():
         if not _has_run(name):
