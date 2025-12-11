@@ -1,0 +1,106 @@
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Tasks}
+
+We use the prime $p = 113$ throughout, matching \citet{nanda2023progress}.
+The three tasks are
+\begin{align*}
+\textsc{add}: \quad & (a, b) \mapsto (a + b) \bmod p,
+                      & a, b &\in \{0, 1, \ldots, p - 1\}, \\
+\textsc{sub}: \quad & (a, b) \mapsto (a - b) \bmod p,
+                      & a, b &\in \{0, 1, \ldots, p - 1\}, \\
+\textsc{mul}: \quad & (a, b) \mapsto (a \cdot b) \bmod p,
+                      & a, b &\in \{1, 2, \ldots, p - 1\}.
+\end{align*}
+For \textsc{mul} we restrict the operands to the multiplicative group
+$(\Z/p\Z)^*$. Including zero would cap test accuracy at $1 - 1/p$ for any
+otherwise-perfect model, because the network would have to memorise the
+$2p - 1$ rows and columns whose product is zero.
+
+\subsection{Tokenisation and input format}
+
+Every example is tokenised as a length-4 sequence
+$\bigl[ a, \mathit{op}, b, = \bigr]$. The vocabulary is
+$\{0, 1, \ldots, p - 1\} \cup \{+, -, \times, =\}$ for a total of $p + 4$
+tokens. The training target is the result digit; the model reads its
+output from the last position (the position of $=$). Including the
+operation token in the input makes the same network architecture work for
+single- and multi-task experiments without modification.
+
+\subsection{Train/test split}
+
+We use a hard 30/70 train/test split per task, sampled by a random
+permutation of the $p^2$ (or $(p - 1)^2$) ordered pairs at the configured
+seed. For multi-task experiments the split is stratified per task so that
+each task contributes 30\% of its own pairs to training. The test set
+therefore covers each task uniformly, which lets us track per-task test
+accuracy without confounding from class imbalance.
+
+\subsection{Model architecture}
+
+The model is a one-layer decoder-only transformer in the
+\citet{nanda2023progress} configuration:
+$d_{\mathrm{model}} = 128$, $n_{\mathrm{heads}} = 4$, $d_{\mathrm{head}} = 32$,
+$d_{\mathrm{MLP}} = 512$. The embeddings are learned positional and
+token embeddings summed at the input. There is no layer normalisation and
+no dropout. The MLP is a two-layer feed-forward network with ReLU
+activation. The output projection $W_U$ is not tied to the input
+embedding $W_E$.
+
+We implement multi-head attention by hand rather than using
+\texttt{torch.nn.MultiheadAttention}, so that the per-head residual
+contributions are addressable for the ablation studies in Section
+\ref{sec:analysis}.
+
+\subsection{Optimiser and training}
+
+We optimise full-batch with AdamW \citep{loshchilov2019adamw}, learning
+rate $10^{-3}$, $\beta_1 = 0.9$, $\beta_2 = 0.98$, $\varepsilon = 10^{-8}$,
+weight decay $\lambda = 1.0$. Full-batch training is feasible because the
+training set has only $\sim$3,800 examples per task at $p = 113,$
+$\mathrm{train\_frac} = 0.30$. Step counts vary by experiment:
+30,000 for single-task addition and subtraction; 50,000 for single-task
+multiplication; 40,000 for multi-task add+subtract; and 60,000 for the
+three-task experiment. Three random seeds (42, 137, 271) are run for the
+robustness sweep.
+
+\subsection{Metrics}
+
+We log per-step train and test cross-entropy loss and top-1 accuracy.
+For multi-task runs these are sliced by task. The headline summary of a
+run is the \emph{grok step}: the first step at which test accuracy
+exceeds 0.95. This follows the convention of \citet{nanda2023progress}
+and lets us compare runs at a glance.
+
+\subsection{Mechanistic-analysis utilities}
+
+\paragraph{Fourier basis.}
+Given a trained model we extract the $p \times d_{\mathrm{model}}$
+sub-matrix of the embedding consisting of the digit tokens, take the DFT
+along the digit axis, and report the per-frequency power
+$\sum_d |\widehat W_E(k, d)|^2$. For the multiplicative analysis we first
+reorder the rows by powers of a primitive root $g$ of $p$, then take the
+DFT. Dominant frequencies are picked greedily until they explain a
+configurable fraction (default 90\%) of total non-DC power, with symmetric
+pairs $(k, p - k)$ deduplicated.
+
+\paragraph{Feature overlap.}
+Two embedding matrices' Fourier feature sets are compared by the cosine
+similarity of their per-frequency power vectors. A value of 1 indicates
+that the two models put weight on the same frequencies in the same
+proportions; 0 indicates orthogonal feature sets.
+
+\paragraph{Head ablation.}
+We zero out one attention head's residual contribution at a time and
+measure the change in cross-entropy loss. For multi-task models the
+ablation is run separately on each task's slice of the data, which
+reveals whether heads specialise.
+
+\subsection{Reproducibility}
+
+Every run pins random seeds for both NumPy and PyTorch and writes its
+full config (training hyperparameters, model dimensions, dataset
+descriptor) as YAML alongside the per-step metrics (NPZ + JSONL). All
+experiments run in under an hour on a 2024 Apple-silicon laptop using the
+PyTorch MPS backend; no GPU cluster is required.

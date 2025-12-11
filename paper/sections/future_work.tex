@@ -1,0 +1,39 @@
+\section{Future work}
+\label{sec:future_work}
+
+The natural follow-ups all preserve the single-layer-transformer setting
+that makes the mechanistic story tractable.
+
+\paragraph{More group structures.}
+The pattern we report --- one Fourier basis per cyclic group ---
+predicts that adding a fourth task on a third cyclic group (e.g.\ a
+permutation group $S_n$) should produce a third dedicated basis, and
+that the multi-task model's residual stream capacity should bound how
+many groups can be jointly grokked.
+
+\paragraph{Continuous interpolation between groups.}
+A small modification of the dataset --- replacing $(a, b) \mapsto (a + b)$
+with $(a, b) \mapsto (a + \alpha b)$ for some smoothly varying
+coefficient $\alpha$ --- would let us trace how Fourier features
+transform under continuous deformations of the underlying group action.
+
+\paragraph{Subspace overlap rather than spectrum overlap.}
+Replace the cosine-similarity feature-overlap metric of Figure
+\ref{fig:fig8_feature_overlap} with the principal-angle distance
+between the subspaces spanned by the multi-task and single-task models'
+dominant Fourier features. This would distinguish ``same frequencies in
+the same proportions'' from ``same frequencies pointing in the same
+embedding directions.''
+
+\paragraph{Pruning and compression.}
+The clean separation between additive and multiplicative subspaces
+suggests that the multi-task model can be losslessly decomposed into
+the two single-task models via an appropriate weight reparametrisation.
+A successful decomposition would double as evidence that the
+representations are genuinely disjoint and not merely uncorrelated on
+the test set.
+
+\paragraph{Larger primes and longer training.}
+Push to $p \in \{257, 503\}$ to check whether the per-task grok-step
+scaling is a fixed multiple of the single-task scaling, or whether
+multi-task interference grows with $p$.

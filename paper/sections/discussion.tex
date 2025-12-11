@@ -1,0 +1,69 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the model has learned}
+
+The Fourier analysis in Section \ref{sec:analysis} establishes that the
+multi-task model uses two separate bases inside one residual stream: an
+additive-group Fourier basis that handles addition and subtraction, and
+a multiplicative-group Fourier basis that handles multiplication. This
+is the more parsimonious of the two outcomes we hypothesised in Section
+\ref{sec:intro}: rather than discovering a single ``algebraic'' feature
+set that abstracts over group structure, the model has effectively
+time-multiplexed the two known per-task algorithms.
+
+This is consistent with the architectural prior. Different cyclic groups
+require different Fourier bases (the bases live on index sets of
+different sizes), so a single basis that worked for both groups would
+have to be either over-complete or coarser than each task individually
+needs. Under aggressive weight decay, the implicit bias of the
+optimiser is toward Frobenius-economical representations, and economy
+in this setting means specialisation.
+
+\subsection{Curriculum vs joint training}
+
+The curriculum experiment (training on addition first, then introducing
+subtraction and multiplication) is not faster than joint training from
+scratch on a per-step basis. The intuition is that the addition-only
+warm-start fills the residual stream with additive-group features at
+the cost of capacity that is later needed for the multiplicative basis;
+the network spends additional steps undoing this commitment when
+multiplication is introduced.
+
+\subsection{Limitations}
+
+Three limitations are worth noting:
+\begin{itemize}
+\item The analysis is restricted to one prime ($p = 113$). The
+      robustness sweep (Section \ref{sec:multitask}) checks two
+      additional primes for the addition baseline, but we did not run
+      the full multi-task analysis at multiple primes.
+\item All experiments use a one-layer transformer with four attention
+      heads, matching \citet{nanda2023progress}. A two-layer model would
+      have a richer mechanistic story but a less unambiguous
+      interpretability picture.
+\item The cosine-similarity feature-overlap metric in Figure
+      \ref{fig:fig8_feature_overlap} is a coarse summary --- it tells
+      us that the same frequencies are weighted in similar proportions,
+      not that the embeddings are pointwise equal in those subspaces.
+      A finer-grained analysis would compute the principal angles
+      between the relevant subspaces.
+\end{itemize}
+
+\subsection{Relation to prior work}
+
+Our results extend the single-task mechanistic story of
+\citet{nanda2023progress} to the multi-task setting and confirm that the
+algorithmic content of grokking is robust to the introduction of
+additional related tasks. They are consistent with the effective theory
+of \citet{liu2022understanding}: weight decay pushes the network
+toward the simplest representation that solves the training set, and
+in the multi-task case ``simplest'' turns out to be two separate
+bases rather than a single shared one.
+
+The slingshot mechanism of \citet{thilak2022slingshot} predicts that
+adaptive optimisers can produce sudden generalisation transitions for
+reasons unrelated to weight decay. We do not see evidence of this
+mechanism dominating in the present experiments --- the dynamics are
+slow and steady at the published $\beta_2 = 0.98$ --- but a careful
+disentanglement at smaller $\beta_2$ would be a useful follow-up.

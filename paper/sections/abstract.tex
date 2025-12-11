@@ -1,0 +1,23 @@
+\begin{abstract}
+\noindent
+Grokking is the phenomenon in which a small neural network trained on a
+synthetic algorithmic task first memorises the training set and then,
+after thousands of additional training steps with no apparent progress,
+abruptly generalises. \citet{nanda2023progress} showed that during the
+apparent plateau a one-layer transformer is silently constructing a
+discrete-Fourier-transform algorithm for modular addition. We extend that
+analysis to a \emph{multi-task} setting in which a single one-layer
+transformer is trained jointly on three modular arithmetic tasks ---
+addition, subtraction, and multiplication modulo a prime $p$. Two of these
+tasks live on the additive group $\Z/p\Z$ and one lives on the
+multiplicative group $(\Z/p\Z)^*$, which has different Fourier-transform
+structure. We replicate the single-task addition baseline at the published
+hyperparameters, characterise per-task grokking dynamics in the joint
+setting, and analyse the trained embedding matrix to ask whether the
+discovered Fourier features are shared across tasks or task-specific.
+We find that addition and subtraction grok jointly with a shared additive
+basis, while multiplication develops a separate, multiplicative-group basis
+in the same residual stream. Per-head ablations confirm that attention
+heads specialise toward operation-conditional features. Code, configs, and
+all per-step metric histories are open-sourced for full reproducibility.
+\end{abstract}

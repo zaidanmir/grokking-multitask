@@ -67,3 +67,39 @@ This compresses Weeks 1–24 of the original plan. The scientific content
 is the same — what's been cut is reading time, paper-writing iterations,
 and feedback loops.
 
+### Build out
+
+By 01:30 BST the repo has:
+- `data/tasks.py`, `src/model.py`, `src/train.py`, `src/eval.py`,
+  `src/analysis/{fourier,ablation,attention}.py`.
+- `tests/test_pipeline.py`, 13 tests, all passing on Python 3.13 + Torch
+  2.11. Tests cover: token ids; per-task targets; multiplication-domain
+  exclusion; train/test disjointness; per-task split balance; model
+  forward shape; per-head output decomposition (heads sum to total);
+  eval per-task slicing; Fourier basis recovers a pure sinusoid;
+  multiplicative-group Fourier basis recovers a character; head
+  ablation runs without crashing.
+- `experiments/01_baseline_addition.py` … `08_robustness_sweeps.py`,
+  plus `plot_results.py`, `run_all.py`, and a `Makefile`.
+- LaTeX skeleton at `paper/main.tex` with sections drafted top to
+  bottom (intro, background, methods, replication, multitask,
+  analysis, discussion, future work). Built with tectonic for
+  zero-install reproducibility.
+
+### Smoke test
+
+A 1500-step run on `+ mod 23` (small `p` for speed) produced the
+expected pattern: train_acc → 1.0 by step 500, test_acc 0.05 → 0.15
+by step 1500, on track to grok with more steps. ~6.3 ms/step on the
+PyTorch MPS backend.
+
+### Per-step cost on the real configuration
+
+Benchmark (CPU vs MPS) at `p=113`, `train_frac=0.30`:
+- CPU: 133 ms/step → 30k steps = 67 min
+- MPS: ~30 ms/step → 30k steps ≈ 15 min
+
+Confirms MPS is the right backend even for this tiny model. CPU is
+slower because the embedding lookup and small matmuls don't amortise
+well over PyTorch's CPU backend.
+

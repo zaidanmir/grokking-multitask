@@ -1,0 +1,77 @@
+\documentclass[10pt]{article}
+
+% ----- Page geometry: NeurIPS-style single-column.
+\usepackage[letterpaper, total={5.5in, 9in}, top=1.0in, left=1.5in]{geometry}
+
+% ----- Standard packages.
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{natbib}
+
+% ----- Title formatting.
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+
+% ----- Theorem-like environments.
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+% ----- Math shortcuts used throughout.
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\E}{\mathbb{E}}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\Tr}{Tr}
+
+% ----- Paper title and author block.
+\title{\textbf{Multi-task grokking on modular arithmetic:\\
+do shared Fourier features emerge?}}
+\author{Zaidan Mir\thanks{Department of Computer Science, Kingston University.
+Code and figures: \url{https://github.com/zaidanmir/grokking-multitask}.
+Correspondence: \texttt{zaidan2440@gmail.com}.}}
+\date{}
+
+% ----- Hyperref colours.
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=blue!60!black,
+            urlcolor=blue!60!black, pdftitle={Multi-task grokking on modular arithmetic}}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\textit{Preprint. Under review.}
+\end{center}
+
+\input{sections/abstract}
+
+\input{sections/introduction}
+
+\input{sections/background}
+
+\input{sections/methods}
+
+\input{sections/replication}
+
+\input{sections/multitask}
+
+\input{sections/analysis}
+
+\input{sections/discussion}
+
+\input{sections/future_work}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

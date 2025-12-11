@@ -1,0 +1,77 @@
+\section{Introduction}
+\label{sec:intro}
+
+Train a small transformer on $(a + b) \bmod p$ for a prime $p$, with a
+hard 30/70 train/test split and aggressive weight decay. The training loss
+collapses within a few hundred gradient steps, so the network has memorised
+the training set. The test loss does not move. After tens of thousands of
+\emph{additional} steps with no apparent progress, the test loss abruptly
+collapses and the model generalises. \citet{power2022grokking} named this
+phenomenon \emph{grokking} and showed that it occurs across a family of
+small algorithmic tasks. \citet{nanda2023progress} subsequently showed
+that during the apparent plateau the network is silently constructing a
+discrete-Fourier-transform algorithm for the underlying group operation,
+and that weight-decay-driven implicit regularisation is what tips the
+optimiser from memorising circuits to generalising circuits.
+
+Grokking sits at the intersection of three research frontiers:
+generalisation theory, mechanistic interpretability, and optimisation
+dynamics. The single-task setting is now reasonably well understood. The
+\emph{multi-task} setting is not.
+
+\paragraph{This paper.} We ask three questions:
+\begin{enumerate}
+\item When a single one-layer transformer is trained jointly on
+      $\{+, -, \times\} \bmod p$, does grokking still occur on each task?
+\item Does multi-task training accelerate, delay, or qualitatively change
+      the per-task grokking dynamics relative to single-task training?
+\item Are the discovered Fourier features shared across tasks or
+      task-specific? In particular, do addition and subtraction (which
+      both live on the additive group $\Z/p\Z$) develop a shared feature
+      set, and does multiplication (which lives on the multiplicative
+      group $(\Z/p\Z)^*$) develop a separate basis?
+\end{enumerate}
+
+\paragraph{Why these questions.}
+All three operations have closed-form Fourier solutions (Section
+\ref{sec:background}), so we can make falsifiable predictions about which
+features should emerge. The multiplicative group $(\Z/p\Z)^*$ is cyclic of
+order $p - 1$, which is a different cyclic group from the additive
+$\Z/p\Z$ of order $p$, so the two groups have non-overlapping Fourier
+bases. A single residual stream that solves all three tasks must therefore
+either reuse one basis for both groups or carve out task-specific
+sub-spaces. Both possibilities are interesting: the first would suggest
+the model has discovered a representation that abstracts over group
+structure, the second would suggest the model is internally
+``time-multiplexing'' between two algorithms.
+
+\paragraph{Contributions.}
+\begin{itemize}
+\item A clean replication of the \citet{nanda2023progress} single-task
+      addition baseline at the published hyperparameters
+      ($p = 113$, $\mathrm{train\_frac} = 0.30$, AdamW with
+      $\mathrm{weight\_decay} = 1.0$).
+\item A characterisation of per-task grokking dynamics in joint training
+      on add+subtract and on add+subtract+multiply, with three random
+      seeds for robustness.
+\item A Fourier-feature analysis of the multi-task model's embedding
+      matrix, comparing additive-group and multiplicative-group
+      decompositions and quantifying overlap with the corresponding
+      single-task models via cosine similarity.
+\item Per-head ablations showing that attention heads partially
+      specialise toward operation-conditional features.
+\item A fully reproducible code release with config files, per-step
+      metric histories, and all figures.\footnote{%
+      \url{https://github.com/zaidanmir/grokking-multitask}}
+\end{itemize}
+
+The rest of the paper is structured as follows. Section
+\ref{sec:background} reviews the algebraic and Fourier prerequisites and
+the published single-task grokking story. Section \ref{sec:methods}
+describes the model architecture, optimiser, and dataset construction.
+Section \ref{sec:replication} reports the single-task replication.
+Section \ref{sec:multitask} reports the multi-task experiments. Section
+\ref{sec:analysis} reports the mechanistic Fourier analysis and head
+ablations. Section \ref{sec:discussion} discusses what the findings imply
+about transformer representations, and Section \ref{sec:future_work}
+sketches open follow-ups.
