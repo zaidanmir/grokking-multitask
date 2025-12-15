@@ -37,7 +37,7 @@ def main() -> None:
         p=p,
         train_frac=train_frac,
         seed=seed,
-        steps=20_000,
+        steps=10_000,
         log_every=2000,
         eval_every=200,
     )
@@ -53,7 +53,7 @@ def main() -> None:
         p=p,
         train_frac=train_frac,
         seed=seed,
-        steps=40_000,
+        steps=20_000,
         log_every=2000,
         eval_every=200,
     )

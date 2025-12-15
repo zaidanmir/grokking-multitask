@@ -27,7 +27,7 @@ def main() -> None:
         p=113,
         train_frac=0.30,
         seed=42,
-        steps=30_000,
+        steps=15_000,
         log_every=2000,
         eval_every=200,
     )
