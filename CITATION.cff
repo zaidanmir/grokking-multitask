@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "Multi-task grokking on modular arithmetic: do shared Fourier features emerge?"
+message: "If you use this software or paper, please cite it as below."
+type: software
+authors:
+  - family-names: Mir
+    given-names: Zaidan
+    email: zaidan2440@gmail.com
+    affiliation: Department of Computer Science, Kingston University
+url: "https://github.com/zaidanmir/grokking-multitask"
+repository-code: "https://github.com/zaidanmir/grokking-multitask"
+license: MIT
+keywords:
+  - grokking
+  - mechanistic interpretability
+  - transformer
+  - modular arithmetic
+  - Fourier analysis
+preferred-citation:
+  type: article
+  title: "Multi-task grokking on modular arithmetic: do shared Fourier features emerge?"
+  authors:
+    - family-names: Mir
+      given-names: Zaidan
+  year: 2026
