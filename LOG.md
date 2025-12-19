@@ -103,3 +103,51 @@ Confirms MPS is the right backend even for this tiny model. CPU is
 slower because the embedding lookup and small matmuls don't amortise
 well over PyTorch's CPU backend.
 
+### Experiment 01 — single-task addition (Nanda baseline replication)
+
+30,000 steps, `p=113`, `train_frac=0.30`, `seed=42`.
+
+| step      | train_loss | test_loss  | train_acc | test_acc |
+| --------- | ---------- | ---------- | --------- | -------- |
+| 0         | 4.78       | 4.78       | 0.000     | 0.000    |
+| ~1,000    | < 1e-3     | ~4.7       | 1.000     | 0.000    |
+| 7,200     | < 1e-5     | ~0.05      | 1.000     | 0.951    |
+| 30,000    | 5.95e-08   | 3.13e-07   | 1.000     | 1.000    |
+
+**Grok step = 7,200**. Substantially earlier than the typically reported
+~25k step in Nanda 2023 (which uses a 0.30 train fraction and the same
+hyperparameters), but the replication is unambiguous: train loss
+collapses fast, test loss sits at the random-guess plateau for ~3,000
+steps, then drops by ~7 orders of magnitude by step 10,000. Wall time
+~18 minutes on MPS. Figure looks textbook: blue (train) drops
+monotonically with high-frequency oscillations after grokking; orange
+(test) stays high then plummets through the grok step marker.
+
+This replication validates the entire pipeline. Every later
+experiment is a delta on this baseline.
+
+### Step-count retuning
+
+With Nanda's grokking pattern reproducing at 7-8k steps rather than
+25k, I halved the step budgets on every other experiment. New
+budgets:
+
+- 02 sub: 15k (was 30k)
+- 03 mul: 25k (was 50k) — multiplication is harder so still longer
+- 04 two-task add+sub: 20k (was 40k)
+- 05 three-task add+sub+mul: 25k (was 60k)
+- 06 curriculum: 10k single + 20k three-task (was 20k+40k)
+- 07 seed sweep: 25k * 2 (was 60k * 2)
+- 08 robustness sweeps: small budgets per cell, unchanged
+
+### Experiment 02 — single-task subtraction
+
+15,000 steps, `seed=42`. Grokked at step ~8,000 — same dynamics as
+addition, just slightly later. Test_loss collapses from 16.9 at step
+4k to 1.1e-7 at step 8k. Final test_acc 1.000. Wall time 10:15.
+
+Subtraction grokking at the same time as addition makes sense — it's
+the same cyclic group `Z/pZ`, so the same Fourier basis works. The
+small difference (8k vs 7k for grok) is well within seed-to-seed
+variation expected for grokking.
+
