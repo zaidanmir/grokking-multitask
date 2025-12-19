@@ -12,9 +12,10 @@ Figure \ref{fig:fig1_replication} shows the train and test loss curves
 for $(a + b) \bmod 113$ with the recipe of Section \ref{sec:methods}.
 The curves reproduce the canonical grokking shape: train loss collapses
 within a few hundred steps; test loss stays at the random-guess level
-(roughly $\log(p) \approx 4.7$) for thousands of steps; then test loss
-drops abruptly. The grok step --- the first step at which test accuracy
-exceeds 0.95 --- is reported in Table \ref{tab:grok_steps_single}.
+(roughly $\log(p) \approx 4.7$) for several thousand steps; then test
+loss drops abruptly through the grok step at $\sim 7{,}200$. The
+grok step --- the first step at which test accuracy exceeds 0.95 ---
+is reported in Table \ref{tab:grok_steps_single}.
 
 \begin{figure}[t]
 \centering
