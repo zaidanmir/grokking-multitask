@@ -19,6 +19,9 @@ from src.train import TrainConfig, train
 
 
 def main() -> None:
+    # Two additional seeds beyond the seed=42 primary run (exp 05).
+    # If time-budgeted, the second seed (271) can be skipped without
+    # affecting the qualitative claim of robustness.
     for seed in (137, 271):
         data = make_multitask(("+", "-", "*"), p=113, train_frac=0.30, seed=seed)
         cfg = TrainConfig(
