@@ -33,10 +33,17 @@ steps before grokking. This reproduces Figure 1 of
 
 Subtraction is a group operation on the same additive group $\Z/p\Z$ as
 addition, so we expect quantitatively similar dynamics. Multiplication
-operates on the multiplicative group $(\Z/p\Z)^*$ of order $p - 1$, which
-is a different cyclic group; the published intuition is that
-multiplication is harder to grok at the same step budget. We confirm this
-in Figure \ref{fig:fig2_per_op_baselines}.
+operates on the multiplicative group $(\Z/p\Z)^*$ of order $p - 1$,
+which is a different cyclic group; the published intuition is that
+multiplication is harder to grok at the same step budget. We find
+addition and subtraction grok within $\sim 200$ steps of each other
+(Table \ref{tab:grok_steps_single}). At seed 42 multiplication groks
+\emph{earlier} than the additive tasks --- the smaller operand domain
+$\{1, \ldots, p - 1\}$ and the slightly different gradient signal from
+having no zero-result row appear to favour faster discovery of the
+multiplicative-group basis at this seed. Across other seeds (Section
+\ref{sec:multitask}) multiplication is the slowest, restoring the
+expected ordering.
 
 \begin{figure}[t]
 \centering
