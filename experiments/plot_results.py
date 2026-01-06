@@ -297,7 +297,7 @@ def fig7_fourier_mult(p: int = 113) -> None:
     spec_add = compute_fourier_basis(_embedding_digits(model, p), p)
     spec_mul = compute_fourier_basis_multiplicative(_embedding_digits(model, p), p)
 
-    fig, axes = plt.subplots(2, 1, figsize=(6.0, 4.2))
+    fig, axes = plt.subplots(2, 1, figsize=(6.0, 4.5))
     for ax, spec, label, c in (
         (axes[0], spec_add, r"additive basis $\mathbb{Z}/p\mathbb{Z}$", "#888888"),
         (axes[1], spec_mul, r"multiplicative basis $(\mathbb{Z}/p\mathbb{Z})^*$",
@@ -313,6 +313,7 @@ def fig7_fourier_mult(p: int = 113) -> None:
         ax.set_ylim(0, 1.05)
     axes[1].set_xlabel(r"frequency index")
     fig.suptitle("multiplication model: same embeddings, two bases", y=1.01)
+    fig.tight_layout()
     fig.savefig(FIG_DIR / "fig7_fourier_mult.pdf")
     plt.close(fig)
 
