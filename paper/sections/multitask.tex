@@ -3,12 +3,18 @@
 
 \subsection{Two operations: add + subtract}
 
-Figure \ref{fig:fig3_multitask_two} shows per-task train and test
-accuracy when a single network is trained jointly on addition and
-subtraction. Both operations live on the additive group of $\Z/p\Z$, so
-the natural prediction is that the model can solve both with a shared
-additive Fourier basis. We find that the two tasks grok in close
-proximity in step-count, supporting that prediction.
+Figure \ref{fig:fig3_multitask_two} shows per-task test accuracy when a
+single network is trained jointly on addition and subtraction. Both
+operations live on the additive group of $\Z/p\Z$, so the natural
+prediction is that the model can solve both with a shared additive
+Fourier basis. We find that the two tasks grok in near-lockstep:
+addition reaches the 0.95 grok threshold at step 5,800 and subtraction
+at step 6,000. Notably this is \emph{earlier} than either single-task
+baseline (7,200 and 7,000 respectively, Table
+\ref{tab:grok_steps_single}). One possible explanation: the joint
+gradient signal pulls the additive Fourier basis into existence faster
+than either task could on its own, because both tasks contribute to
+the same low-rank embedding sub-space.
 
 \begin{figure}[t]
 \centering
