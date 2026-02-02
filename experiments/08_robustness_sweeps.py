@@ -36,7 +36,9 @@ def run_one(p: int, train_frac: float, steps: int) -> None:
 
 def main() -> None:
     # Fix train_frac=0.30, vary p.
-    run_one(p=59, train_frac=0.30, steps=15_000)
+    # p=59 with train_frac=0.30 has only ~1k train examples — too sparse
+    # to grok in a small budget. Bump steps to give it room.
+    run_one(p=59, train_frac=0.30, steps=40_000)
     run_one(p=199, train_frac=0.30, steps=40_000)
 
     # Fix p=113, vary train_frac.

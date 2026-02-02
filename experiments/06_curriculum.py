@@ -53,9 +53,9 @@ def main() -> None:
         p=p,
         train_frac=train_frac,
         seed=seed,
-        steps=20_000,
+        steps=65_000,
         log_every=2000,
-        eval_every=200,
+        eval_every=500,
     )
     # Train, then patch the model's initial weights post-hoc by manually
     # constructing the model and stitching weights in before optimisation.
