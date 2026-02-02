@@ -142,12 +142,85 @@ budgets:
 
 ### Experiment 02 — single-task subtraction
 
-15,000 steps, `seed=42`. Grokked at step ~8,000 — same dynamics as
-addition, just slightly later. Test_loss collapses from 16.9 at step
+15,000 steps, `seed=42`. Grokked at step **7,000**. Same dynamics as
+addition, slightly faster. Test_loss collapses from 16.9 at step
 4k to 1.1e-7 at step 8k. Final test_acc 1.000. Wall time 10:15.
 
-Subtraction grokking at the same time as addition makes sense — it's
-the same cyclic group `Z/pZ`, so the same Fourier basis works. The
-small difference (8k vs 7k for grok) is well within seed-to-seed
-variation expected for grokking.
+### Experiment 03 — single-task multiplication
+
+25,000 steps, `seed=42`. Grokked at step **4,200** — *faster* than
+either additive task, contrary to the published intuition that
+multiplication is the hardest single-task. Possible reason: the
+operand domain is `{1, ..., p-1}` (smaller than `{0, ..., p-1}`),
+and there is no zero-result row in the Cayley table to memorise
+spuriously, so the multiplicative-group structure is reachable in
+fewer optimisation steps at this seed.
+
+### Fourier analysis on single-task models
+
+Each model concentrates power in the Fourier basis appropriate to its
+group operation:
+
+  | model | additive basis dom. freqs | mul basis dom. freqs | additive sparsity | mul sparsity |
+  | ----- | ------------------------- | -------------------- | ----------------- | ------------ |
+  | add   | {17, 26, 35, 39}          | (diffuse)            | 8 of 113 freqs    | 111 of 113   |
+  | sub   | {22, 30, 40}              | (diffuse)            | 6 of 113 freqs    | 111 of 113   |
+  | mul   | (diffuse)                 | {32, 33, 49, 50, ..} | 112 of 113 freqs  | 9 of 113     |
+
+`sparsity` = number of frequencies with > 10% of the peak power. Add
+and sub use *different* additive frequencies, but the same kind of
+basis. Mul has zero structure on the additive basis and clean spike
+structure on the multiplicative basis — exactly the prediction from
+group theory.
+
+### Experiment 04 — multitask add + sub
+
+20,000 steps, `seed=42`. Both tasks grokked, in near-lockstep:
+- task `+` : grok step **5,800**
+- task `-` : grok step **6,000**
+- final test_acc on both: 1.000
+
+Notably, **both tasks grokked earlier than their single-task
+baselines** (5,800 vs 7,200 for `+`, 6,000 vs 7,000 for `-`). The
+shared additive Fourier basis is being pulled into existence by both
+gradient streams simultaneously. Wall time 24:36.
+
+### Experiment 05 — multitask add + sub + mul (FIRST ATTEMPT, 25k steps)
+
+**FAILED to grok in 25k steps.** Train acc reached 0.954 (memorising)
+but test acc per task stayed near random:
+- `+` : final test acc 0.192
+- `-` : final test acc 0.041
+- `*` : final test acc 0.200
+
+This is consistent with the plan's warning that multitask three may
+need a longer schedule. The plateau is real — train loss is small
+(0.4) but test loss is at the random-guess level (~7).
+
+Side effects in the same pipeline run (all also failed to grok at the
+budget):
+- exp 06 stage_b (curriculum warm-start from grokked addition):
+  partially grokked +, but - and * stuck. Final test acc 0.58.
+- exp 07 seeds 137 and 271: same plateau, no grokking.
+- exp 08 robustness p=59 (1k train examples, 15k steps): too sparse,
+  did not grok.
+
+### Experiment 08 — robustness sweeps over (p, train_frac)
+
+| p   | train_frac | n_train | grok step | notes                      |
+|-----|-----------:|--------:|----------:|----------------------------|
+| 113 |      0.40  |  5,108  |     1,500 | grokked easily             |
+| 113 |      0.50  |  6,385  |       500 | grokked very fast          |
+| 199 |      0.30  | 11,880  |     3,500 | grokked, larger p          |
+|  59 |      0.30  |  1,044  |       —   | did not grok in 15k        |
+
+More training data → faster grokking. The p=59 cell is undertrained
+because a 30% split of `59 x 59 = 3481` pairs is just 1,044 examples
+— too sparse for the same recipe. Re-running with 40k steps.
+
+### Re-run with 75k step budgets
+
+After confirming multitask-three plateaus through 25k, re-running
+exp 05 / 06 stage_b / 07 with 75k steps and exp 08 p=59 with 40k
+steps. Total compute budget for the retry: ~7 hours.
 
