@@ -2,12 +2,19 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-runs/
-checkpoints/
 wandb/
 .DS_Store
 *.egg-info/
 .pytest_cache/
+
+# runs/ files: keep final checkpoints + metric histories (so the project is
+# resumable across machines); ignore the verbose JSONL logs and intermediate
+# checkpoint snapshots.
+runs/**/*.jsonl
+runs/**/checkpoints/
+runs/**/*.log
+runs/run_all*.log
+checkpoints/
 
 # LaTeX intermediates
 paper/*.aux

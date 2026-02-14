@@ -1,0 +1,35 @@
+train:
+  name: 01_baseline_addition
+  ops:
+  - +
+  p: 113
+  train_frac: 0.3
+  seed: 42
+  steps: 30000
+  lr: 0.001
+  weight_decay: 1.0
+  beta1: 0.9
+  beta2: 0.98
+  eps: 1.0e-08
+  log_every: 2000
+  eval_every: 200
+  checkpoint_every: 0
+  device: auto
+  save_dir: runs
+model:
+  p: 113
+  seq_len: 4
+  d_model: 128
+  n_heads: 4
+  d_head: 32
+  d_mlp: 512
+  extra_vocab: 4
+  init_scale: 1.0
+data:
+  ops:
+  - +
+  p: 113
+  train_frac: 0.3
+  seed: 42
+  n_train: 3831
+  n_test: 8938

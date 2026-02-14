@@ -1,0 +1,67 @@
+{
+  "04_multitask_two": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 1.0637350555953162e-07,
+    "final_test_loss": 2.8942397420905763e-06,
+    "n_steps_logged": 20000,
+    "grok_step_overall": 6000,
+    "per_task": {
+      "+": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 4.682171493186615e-06,
+        "grok_step": 5800
+      },
+      "-": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 1.106308104681375e-06,
+        "grok_step": 6000
+      }
+    }
+  },
+  "02_baseline_subtraction": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 6.013359552525799e-07,
+    "final_test_loss": 8.546703611500561e-07,
+    "n_steps_logged": 15000,
+    "grok_step_overall": 7000,
+    "per_task": {
+      "-": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 8.546703611500561e-07,
+        "grok_step": 7000
+      }
+    }
+  },
+  "03_baseline_multiplication": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 0.9997722506523132,
+    "final_train_loss": 0.0007814933196641505,
+    "final_test_loss": 0.0018027370097115636,
+    "n_steps_logged": 25000,
+    "grok_step_overall": 4200,
+    "per_task": {
+      "*": {
+        "final_test_acc": 0.9997722506523132,
+        "final_test_loss": 0.0018027370097115636,
+        "grok_step": 4200
+      }
+    }
+  },
+  "01_baseline_addition": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 5.952684389853857e-08,
+    "final_test_loss": 3.1316159265770693e-07,
+    "n_steps_logged": 30000,
+    "grok_step_overall": 7200,
+    "per_task": {
+      "+": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 3.1316159265770693e-07,
+        "grok_step": 7200
+      }
+    }
+  }
+}

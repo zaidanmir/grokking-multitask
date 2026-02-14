@@ -29,7 +29,9 @@ def main() -> None:
     p = 113
     train_frac = 0.30
 
-    # Stage 1: addition only.
+    # Stage 1: addition only. Skipped if a final checkpoint already exists,
+    # so this script is resumable across machines (e.g. start stage 1 on a
+    # laptop and continue stage 2 on a GPU box).
     add_data = make_task("+", p=p, train_frac=train_frac, seed=seed)
     cfg_a = TrainConfig(
         name="06_curriculum_stage_a_add",
@@ -41,8 +43,13 @@ def main() -> None:
         log_every=2000,
         eval_every=200,
     )
-    out_a = train(cfg_a, add_data)
-    state_a = out_a["model"].state_dict()
+    stage_a_ckpt = Path(cfg_a.save_dir) / cfg_a.name / "final.pt"
+    if stage_a_ckpt.exists():
+        print(f"[06_curriculum] stage_a checkpoint exists — loading {stage_a_ckpt}")
+        state_a = torch.load(stage_a_ckpt, map_location="cpu", weights_only=True)
+    else:
+        out_a = train(cfg_a, add_data)
+        state_a = out_a["model"].state_dict()
 
     # Stage 2: add the second task and continue. Re-init the model with the
     # stage-1 weights — this is the "curriculum" condition.

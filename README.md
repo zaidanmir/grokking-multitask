@@ -90,10 +90,40 @@ primary replicates. Final figures are written to `paper/figures/`.
 ## Hardware
 
 Designed to run on a 2024 Apple-silicon laptop using PyTorch's MPS
-backend. All experiments fit in memory; full sweep takes ~3 hours on
-an M-series chip. CUDA is also supported (auto-detected). CPU works
-but is ~4× slower for this small model size due to the per-kernel
-launch overhead being a smaller fraction of the GPU compute.
+backend. The single-task baselines and the two-task multitask
+experiment fit comfortably in ~30 minutes each. The three-task
+multitask experiments (`05`, `06_stage_b`, `07`) are much slower in
+wall-clock time on MPS (~5 hours each at 75k steps) — they benefit
+substantially from a CUDA GPU. CPU works but is ~4× slower for this
+small model size due to per-kernel launch overhead.
+
+### Running unfinished experiments on a CUDA box
+
+Final checkpoints and per-step metric histories are committed in
+`runs/`, so the project is resumable across machines:
+
+```bash
+git clone https://github.com/zaidanmir/grokking-multitask
+cd grokking-multitask
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+PYTHONPATH=. python experiments/run_all.py --skip-existing
+PYTHONPATH=. python experiments/finalize.py
+```
+
+Runs whose `final.pt` is already in `runs/` are skipped. The
+`06_curriculum.py` script is also resumable mid-script: stage 1 of
+the curriculum (10k addition warm-start) is skipped if
+`runs/06_curriculum_stage_a_add/final.pt` exists.
+
+The remaining experiments after the laptop run is:
+- `05_multitask_three` (75k steps, multi-task add+sub+mul) — already
+  completed at 75k on MPS; partial generalisation (test acc ~0.5)
+  but did not fully grok.
+- `06_curriculum_stage_b_multi` (65k steps from a grokked-addition
+  warm-start)
+- `07_multitask_three_seed_137` (75k steps, additional seed)
+- `08_robustness_p59_tf30` (40k steps, small-p sweep cell)
 
 ## Citation
 
