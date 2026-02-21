@@ -41,17 +41,32 @@ are *different* cyclic groups, so a single residual stream that solves
 all three tasks must either reuse one basis for both or carve out
 task-specific sub-spaces.
 
-## Headline result
+## Headline results
 
-Single-task addition replicates the grokking phenomenon at the published
-hyperparameters of Nanda 2023. With *p* = 113, train fraction 0.30,
-AdamW (weight decay = 1.0), the network memorises the training set
-within ~1,000 steps, sits at the random-guess test-loss plateau, then
-groks: test accuracy first crosses 0.95 at **step 7,200**, reaches
-1.000 by step 30,000.
+1. **Single-task** addition, subtraction, and multiplication all
+   grok cleanly at the published hyperparameters of Nanda 2023 (*p*
+   = 113, train fraction 0.30, AdamW with weight decay 1.0). Grok
+   steps: addition **7,200**, subtraction **7,000**, multiplication
+   **4,200**.
+2. **Two-task** training on $+$ and $-$ groks *faster* than either
+   single-task baseline (5,800 / 6,000), suggesting that the shared
+   additive Fourier basis is discovered more quickly under joint
+   gradient pressure.
+3. **Three-task** training on $+$, $-$, and $\times$ does *not* grok
+   in 75,000 steps. Instead, test accuracy rises smoothly through
+   training, reaching 0.60 / 0.48 / 0.32 on the three tasks. We
+   argue this slow-ramp dynamic reflects a residual-stream capacity
+   competition between the additive and multiplicative Fourier
+   circuits. This is the paper's main empirical contribution.
+4. **Mechanistic analysis.** Single-task models cleanly use the
+   Fourier basis appropriate to their group operation: add and sub
+   concentrate power on a small set of additive-group frequencies;
+   multiplication uses the multiplicative-group basis. Per-head
+   ablations on the multi-task model show partial specialisation:
+   one head is critical for the additive tasks while heads 0+3 carry
+   the multiplicative work.
 
-See [`paper/main.pdf`](paper/main.pdf) for the full write-up and
-multi-task analysis.
+See [`paper/main.pdf`](paper/main.pdf) for the full manuscript.
 
 ## Repo layout
 
