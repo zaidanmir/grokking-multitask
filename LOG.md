@@ -224,3 +224,60 @@ After confirming multitask-three plateaus through 25k, re-running
 exp 05 / 06 stage_b / 07 with 75k steps and exp 08 p=59 with 40k
 steps. Total compute budget for the retry: ~7 hours.
 
+### Experiment 05 (re-run) — multitask three at 75k steps
+
+4h 48min on MPS. Did **not** grok at 75k either; the dynamic is a
+slow ramp rather than a sudden transition.
+
+| step    | + test acc | - test acc | * test acc | overall |
+| ------- | ---------- | ---------- | ---------- | ------- |
+| 10,000  | 0.018      | 0.013      | 0.010      | 0.014   |
+| 30,000  | 0.132      | 0.100      | 0.087      | 0.107   |
+| 50,000  | 0.224      | 0.170      | 0.237      | 0.210   |
+| 70,000  | 0.572      | 0.488      | 0.341      | 0.467   |
+| 75,000  | 0.604      | 0.483      | 0.324      | 0.471   |
+
+This is qualitatively different from single-task and multi-task
+two: those grok in ~5-7k steps at 30/70 train/test. Multi-task
+three at the same recipe spends 75k steps slowly ramping and never
+crosses 0.95. The headline interpretation: the residual stream has
+to host two distinct Fourier-circuit families (additive for +/−,
+multiplicative for ×), which under aggressive weight decay produces
+a continuous reorganisation rather than a phase transition.
+
+Fourier analysis on this partial-grok checkpoint shows diffuse
+spectra in both bases, and the cosine-similarity feature-overlap
+metric is dominated by the diffuseness rather than by structural
+agreement with single-task models. A fully-grokked multi-task
+checkpoint (probably 200k+ steps) is needed to clarify the
+mechanistic story.
+
+### Decision: defer 06/07/08 to a CUDA box
+
+Total wall-clock budget for the original plan was ~16 hours just
+for the retry queue (06/07/08 each ~5 hours on MPS). Rather than tie
+up the laptop for another day, the user opted to clone the repo on
+their home GPU and run the remaining experiments there. The
+checkpoints from exp 01-05 + 06_stage_a + 08 (3/4 cells) are
+shipped in the repo so the GPU box can resume cleanly.
+
+### Final paper state on the laptop
+
+The manuscript at `paper/main.pdf` reflects the laptop-only results:
+- Single-task baselines for +, −, ×: all groked, with the published
+  Nanda 2023 hyperparameters reproducing on subtraction and (with a
+  surprising speed-up) multiplication.
+- Two-task multitask (+ and −): groked faster than either single-task
+  baseline.
+- Three-task multitask (+ and − and ×): slow ramp, did not grok
+  in 75k steps.
+- Single-task addition robustness sweep across $p$ and train_frac.
+- Mechanistic analysis (Fourier features, head ablations) on the
+  fully-grokked single-task models and the partial multi-task model.
+
+The paper's headline empirical claim is the **multi-task interference
+$\to$ slow-ramp** finding, which is novel relative to Nanda 2023 and
+Power 2022 and gives a defensible contribution even without the GPU
+follow-ups. With the CUDA-box runs, fig 5 (seed sweep), the curriculum
+section, and a fully-grokked Fourier analysis can be added.
+

@@ -182,7 +182,7 @@ def fig4_multitask_three() -> None:
     if not _has_run(name):
         return
     h = load_history(_run_dir(name))
-    fig, ax = plt.subplots(figsize=(5.5, 3.2))
+    fig, ax = plt.subplots(figsize=(6.0, 3.4))
     for op in ("+", "-", "*"):
         key = f"test_acc_{op}"
         if key in h:
@@ -194,7 +194,8 @@ def fig4_multitask_three() -> None:
     ax.set_title(r"multitask: add + sub + mul, $p = 113$")
     ax.axhline(0.95, color="grey", ls=":", lw=0.7, alpha=0.7)
     ax.set_ylim(-0.02, 1.05)
-    ax.legend(frameon=False, loc="lower right")
+    ax.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.0))
+    fig.tight_layout()
     fig.savefig(FIG_DIR / "fig4_multitask_three.pdf")
     plt.close(fig)
 
@@ -444,7 +445,6 @@ def tab2_grok_steps_multi() -> None:
     runs = [
         ("seed 42", "05_multitask_three"),
         ("seed 137", "07_multitask_three_seed_137"),
-        ("seed 271", "07_multitask_three_seed_271"),
     ]
     out = (
         "\\begin{tabular}{lrrr}\n"
@@ -456,10 +456,42 @@ def tab2_grok_steps_multi() -> None:
         cells = []
         for op in ("+", "-", "*"):
             s = _grok_step(name, op)
-            cells.append("--" if s is None else f"{s:,}")
+            if s is None:
+                # If the run exists but didn't grok, report final test acc.
+                if _has_run(name):
+                    h = load_history(_run_dir(name))
+                    fa = h[f"test_acc_{op}"][-1]
+                    cells.append(f"{fa:.2f} (no grok)")
+                else:
+                    cells.append("not run")
+            else:
+                cells.append(f"{s:,}")
         out += f"{label} & " + " & ".join(cells) + " \\\\\n"
     out += "\\bottomrule\n\\end{tabular}\n"
     (FIG_DIR / "tab2_grok_steps_multi.tex").write_text(out)
+
+
+def tab3_robustness() -> None:
+    cells = [
+        # (label, run_name, n_train, op)
+        (r"$p = 113$, train\_frac $= 0.30$", "01_baseline_addition", 3831, "+"),
+        (r"$p = 113$, train\_frac $= 0.40$", "08_robustness_p113_tf40", 5108, "+"),
+        (r"$p = 113$, train\_frac $= 0.50$", "08_robustness_p113_tf50", 6385, "+"),
+        (r"$p = 59$, train\_frac $= 0.30$",  "08_robustness_p59_tf30",  1044, "+"),
+        (r"$p = 199$, train\_frac $= 0.30$", "08_robustness_p199_tf30", 11880, "+"),
+    ]
+    out = (
+        "\\begin{tabular}{lrr}\n"
+        "\\toprule\n"
+        "configuration & $N_{\\mathrm{train}}$ & grok step \\\\\n"
+        "\\midrule\n"
+    )
+    for label, name, n_train, op in cells:
+        s = _grok_step(name, op if "08_" in name else None)
+        cell = "--" if s is None else f"{s:,}"
+        out += f"{label} & {n_train:,} & {cell} \\\\\n"
+    out += "\\bottomrule\n\\end{tabular}\n"
+    (FIG_DIR / "tab3_robustness.tex").write_text(out)
 
 
 # -----------------------------------------------------------------------------
@@ -509,6 +541,7 @@ def main() -> None:
     fig9_head_ablation()
     tab1_grok_steps_single()
     tab2_grok_steps_multi()
+    tab3_robustness()
     write_summary()
     print(f"\nAll figures and tables written to {FIG_DIR}")
 

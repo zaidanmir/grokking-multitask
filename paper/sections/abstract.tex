@@ -5,19 +5,29 @@ synthetic algorithmic task first memorises the training set and then,
 after thousands of additional training steps with no apparent progress,
 abruptly generalises. \citet{nanda2023progress} showed that during the
 apparent plateau a one-layer transformer is silently constructing a
-discrete-Fourier-transform algorithm for modular addition. We extend that
-analysis to a \emph{multi-task} setting in which a single one-layer
+discrete-Fourier-transform algorithm for modular addition. We extend
+that analysis to a \emph{multi-task} setting in which a single one-layer
 transformer is trained jointly on three modular arithmetic tasks ---
-addition, subtraction, and multiplication modulo a prime $p$. Two of these
-tasks live on the additive group $\Z/p\Z$ and one lives on the
+addition, subtraction, and multiplication modulo a prime $p$. Two of
+these tasks live on the additive group $\Z/p\Z$ and one lives on the
 multiplicative group $(\Z/p\Z)^*$, which has different Fourier-transform
-structure. We replicate the single-task addition baseline at the published
-hyperparameters, characterise per-task grokking dynamics in the joint
-setting, and analyse the trained embedding matrix to ask whether the
-discovered Fourier features are shared across tasks or task-specific.
-We find that addition and subtraction grok jointly with a shared additive
-basis, while multiplication develops a separate, multiplicative-group basis
-in the same residual stream. Per-head ablations confirm that attention
-heads specialise toward operation-conditional features. Code, configs, and
-all per-step metric histories are open-sourced for full reproducibility.
+structure.
+
+We replicate the single-task addition baseline of
+\citet{nanda2023progress} ($p = 113$, $\mathrm{train\_frac} = 0.30$,
+AdamW with $\mathrm{weight\_decay} = 1.0$, grokking at step
+$\sim$$7{,}200$) and obtain analogous sharp grokking transitions for
+single-task subtraction and multiplication. Joint training on
+\textsc{add}+\textsc{sub} grokes \emph{faster} than either single-task
+baseline, suggesting that the shared additive Fourier basis is
+discovered more quickly under joint gradient pressure. Joint training on
+\textsc{add}+\textsc{sub}+\textsc{mul} produces a qualitatively
+different dynamic: instead of a sharp plateau-then-collapse transition,
+test accuracy on each task rises smoothly through 75{,}000 training
+steps, reaching $0.60 / 0.48 / 0.32$ on the three tasks but never
+crossing the 0.95 grok threshold. We argue this slow-ramp dynamic
+reflects a residual-stream capacity competition between the two
+distinct Fourier circuits that the additive and multiplicative tasks
+each require. Code, configs, checkpoints, and all per-step metric
+histories are released for reproducibility and continued analysis.
 \end{abstract}

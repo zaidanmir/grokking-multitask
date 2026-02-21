@@ -34,6 +34,51 @@
       }
     }
   },
+  "06_curriculum_stage_a_add": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 6.845741751249079e-08,
+    "final_test_loss": 1.8701631177009403e-07,
+    "n_steps_logged": 10000,
+    "grok_step_overall": 7000,
+    "per_task": {
+      "+": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 1.8701631177009403e-07,
+        "grok_step": 7000
+      }
+    }
+  },
+  "08_robustness_p113_tf50": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 5.954861492796226e-08,
+    "final_test_loss": 1.7171861372844432e-06,
+    "n_steps_logged": 15000,
+    "grok_step_overall": 500,
+    "per_task": {
+      "+": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 1.7171861372844432e-06,
+        "grok_step": 500
+      }
+    }
+  },
+  "08_robustness_p199_tf30": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 0.9999278783798218,
+    "final_train_loss": 0.008125187829136848,
+    "final_test_loss": 0.010881121270358562,
+    "n_steps_logged": 40000,
+    "grok_step_overall": 3500,
+    "per_task": {
+      "+": {
+        "final_test_acc": 0.9999278783798218,
+        "final_test_loss": 0.010881121270358562,
+        "grok_step": 3500
+      }
+    }
+  },
   "03_baseline_multiplication": {
     "final_train_acc": 1.0,
     "final_test_acc": 0.9997722506523132,
@@ -49,6 +94,21 @@
       }
     }
   },
+  "08_robustness_p113_tf40": {
+    "final_train_acc": 1.0,
+    "final_test_acc": 1.0,
+    "final_train_loss": 0.00014312956773210317,
+    "final_test_loss": 0.0002105470048263669,
+    "n_steps_logged": 20000,
+    "grok_step_overall": 1500,
+    "per_task": {
+      "+": {
+        "final_test_acc": 1.0,
+        "final_test_loss": 0.0002105470048263669,
+        "grok_step": 1500
+      }
+    }
+  },
   "01_baseline_addition": {
     "final_train_acc": 1.0,
     "final_test_acc": 1.0,
@@ -61,6 +121,31 @@
         "final_test_acc": 1.0,
         "final_test_loss": 3.1316159265770693e-07,
         "grok_step": 7200
+      }
+    }
+  },
+  "05_multitask_three": {
+    "final_train_acc": 0.8543545007705688,
+    "final_test_acc": 0.47090819478034973,
+    "final_train_loss": 0.7128313183784485,
+    "final_test_loss": 1.5952156782150269,
+    "n_steps_logged": 75000,
+    "grok_step_overall": null,
+    "per_task": {
+      "+": {
+        "final_test_acc": 0.6036025881767273,
+        "final_test_loss": 1.2619234323501587,
+        "grok_step": null
+      },
+      "-": {
+        "final_test_acc": 0.4827702045440674,
+        "final_test_loss": 1.5745151042938232,
+        "grok_step": null
+      },
+      "*": {
+        "final_test_acc": 0.32376721501350403,
+        "final_test_loss": 1.9555379152297974,
+        "grok_step": null
       }
     }
   }

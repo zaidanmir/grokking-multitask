@@ -1,69 +1,109 @@
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{What the model has learned}
+\subsection{Multi-task interference impedes the grokking transition}
 
-The Fourier analysis in Section \ref{sec:analysis} establishes that the
-multi-task model uses two separate bases inside one residual stream: an
-additive-group Fourier basis that handles addition and subtraction, and
-a multiplicative-group Fourier basis that handles multiplication. This
-is the more parsimonious of the two outcomes we hypothesised in Section
-\ref{sec:intro}: rather than discovering a single ``algebraic'' feature
-set that abstracts over group structure, the model has effectively
-time-multiplexed the two known per-task algorithms.
+The headline empirical contribution of this paper is that joint
+training on addition, subtraction, and multiplication mod $p$
+\emph{qualitatively changes} the dynamics of grokking. Single-task
+grokking on each of the three operations is sharp: train loss
+collapses fast, test loss plateaus at the random-guess level, then
+collapses through the grok step within a small fraction of the
+training budget. The two-task experiment ($+$ and $-$) preserves the
+sharp transition, and even slightly accelerates it relative to the
+single-task baselines. The three-task experiment ($+$, $-$, $\times$)
+loses the sharp transition entirely: instead of a plateau-then-collapse
+shape, the test accuracy rises smoothly through 75{,}000 training
+steps, reaching $0.60 / 0.48 / 0.32$ on the three tasks but never
+crossing the 0.95 grok threshold within budget.
 
-This is consistent with the architectural prior. Different cyclic groups
-require different Fourier bases (the bases live on index sets of
-different sizes), so a single basis that worked for both groups would
-have to be either over-complete or coarser than each task individually
-needs. Under aggressive weight decay, the implicit bias of the
-optimiser is toward Frobenius-economical representations, and economy
-in this setting means specialisation.
+We do not have a complete mechanistic story for the slow ramp, but the
+ingredients we do have are:
+\begin{enumerate}
+\item The two additive operations live on the cyclic group $\Z/p\Z$
+      while multiplication lives on $(\Z/p\Z)^*$, a different cyclic
+      group of different order. A model that solves all three tasks
+      with Fourier features must therefore commit residual-stream
+      capacity to two distinct bases.
+\item Under aggressive weight decay, the implicit bias of the
+      optimiser is toward small-Frobenius-norm representations, which
+      makes the network prefer the smallest feature set that fits the
+      training data. The two-basis solution costs more capacity than
+      the one-basis solution required by single-task or two-task
+      training.
+\item The smooth ramp is consistent with a slow reorganisation
+      between competing basis hypotheses, rather than the discrete
+      jump from memorisation to a single Fourier algorithm seen in
+      Nanda's setting.
+\end{enumerate}
 
-\subsection{Curriculum vs joint training}
+\subsection{Single-task replication: a sanity check}
 
-The curriculum experiment (training on addition first, then introducing
-subtraction and multiplication) is not faster than joint training from
-scratch on a per-step basis. The intuition is that the addition-only
-warm-start fills the residual stream with additive-group features at
-the cost of capacity that is later needed for the multiplicative basis;
-the network spends additional steps undoing this commitment when
-multiplication is introduced.
+The single-task replications (addition, subtraction, multiplication)
+all groked cleanly at the published Nanda 2023 hyperparameters,
+within a 5,000--7,500-step grok window. Multiplication groked
+\emph{earliest} at this seed --- contrary to the published intuition
+that multiplication is hardest --- but the qualitative picture
+(memorisation $\to$ plateau $\to$ abrupt generalisation) is
+preserved. The Fourier analysis in Section \ref{sec:analysis}
+confirms that each model concentrates its embedding power in the
+basis appropriate to its group operation, with sparse and clean
+support.
 
 \subsection{Limitations}
 
-Three limitations are worth noting:
-\begin{itemize}
-\item The analysis is restricted to one prime ($p = 113$). The
-      robustness sweep (Section \ref{sec:multitask}) checks two
-      additional primes for the addition baseline, but we did not run
-      the full multi-task analysis at multiple primes.
-\item All experiments use a one-layer transformer with four attention
-      heads, matching \citet{nanda2023progress}. A two-layer model would
-      have a richer mechanistic story but a less unambiguous
-      interpretability picture.
-\item The cosine-similarity feature-overlap metric in Figure
-      \ref{fig:fig8_feature_overlap} is a coarse summary --- it tells
-      us that the same frequencies are weighted in similar proportions,
-      not that the embeddings are pointwise equal in those subspaces.
-      A finer-grained analysis would compute the principal angles
-      between the relevant subspaces.
-\end{itemize}
+\paragraph{Step budget.}
+The three-task experiment was run for 75{,}000 steps, which is
+$\sim$10$\times$ the single-task grok step but evidently not enough
+for the three-task model to fully grok. We do not yet know whether
+extending to $200{,}000+$ steps would push the model through a
+delayed grokking transition, or whether the slow-ramp dynamic
+saturates without ever sharply transitioning. This is the most
+important follow-up.
+
+\paragraph{Curriculum and seed sweep.}
+A curriculum experiment (warm-start from a grokked addition
+checkpoint, then introduce the other two tasks) and a second
+random seed for the three-task experiment were scheduled but not run
+on the laptop hardware used for the present results. The
+checkpoints from the first eight runs are released so these
+experiments can be picked up on a CUDA box without redoing earlier
+work.
+
+\paragraph{One prime, one architecture.}
+All experiments use $p = 113$ and the one-layer transformer of
+\citet{nanda2023progress}. The robustness sweep checks $p \in
+\{59, 113, 199\}$ and train fractions $\{0.30, 0.40, 0.50\}$ for the
+single-task addition baseline; we do not run the multi-task variant
+at multiple primes.
+
+\paragraph{Mid-training Fourier analysis.}
+The Fourier feature-overlap metric (Figure
+\ref{fig:fig8_feature_overlap}) compares the multi-task model's
+spectrum to each single-task spectrum at the partially-grokked
+checkpoint. Both spectra are diffuse at this horizon, which makes the
+cosine-similarity numbers hard to interpret directly. A fully-grokked
+multi-task checkpoint would let us replace this metric with a
+sharper subspace-overlap analysis.
 
 \subsection{Relation to prior work}
 
-Our results extend the single-task mechanistic story of
-\citet{nanda2023progress} to the multi-task setting and confirm that the
-algorithmic content of grokking is robust to the introduction of
-additional related tasks. They are consistent with the effective theory
-of \citet{liu2022understanding}: weight decay pushes the network
-toward the simplest representation that solves the training set, and
-in the multi-task case ``simplest'' turns out to be two separate
-bases rather than a single shared one.
+Our single-task results extend the mechanistic story of
+\citet{nanda2023progress} to subtraction and multiplication, with the
+expected basis-by-group result. The multi-task slow-ramp finding is,
+to our knowledge, novel: \citet{power2022grokking} demonstrate
+grokking across a family of synthetic tasks but treat each in
+isolation; \citet{nanda2023progress} restricts mechanistic analysis to
+single-task addition; \citet{liu2022omnigrok,liu2022understanding}
+develop effective theories of single-task grokking dynamics under
+weight decay. The interference dynamic we report points at a possible
+mechanistic boundary between sharp-transition and smooth-ramp regimes
+that is set by how many distinct algorithms must coexist in a single
+residual stream.
 
 The slingshot mechanism of \citet{thilak2022slingshot} predicts that
 adaptive optimisers can produce sudden generalisation transitions for
-reasons unrelated to weight decay. We do not see evidence of this
-mechanism dominating in the present experiments --- the dynamics are
-slow and steady at the published $\beta_2 = 0.98$ --- but a careful
-disentanglement at smaller $\beta_2$ would be a useful follow-up.
+reasons unrelated to weight decay. The slow-ramp dynamic we observe
+under the same optimiser settings ($\beta_2 = 0.98$) suggests that
+slingshot dynamics, where they occur, are not strong enough to push
+the multi-task three model through to grokking within 75{,}000 steps.

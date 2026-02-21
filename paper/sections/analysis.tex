@@ -3,87 +3,130 @@
 
 \subsection{Fourier features in single-task models}
 
-We extract the digit sub-matrix of the trained embedding matrix
-($W_E[0:p, :] \in \R^{p \times d_{\mathrm{model}}}$), take the DFT along
-the digit axis as in equation \eqref{eq:dft}, and plot the per-frequency
-power spectrum in Figure \ref{fig:fig6_fourier_singletask}. As predicted
-by \citet{nanda2023progress}, the addition and subtraction models
-concentrate power on a small set of additive-group frequencies. The
-multiplication model has a much flatter additive-group spectrum --- the
-Fourier features it has learned do not live on the cyclic group of
-order $p$.
+We extract the digit sub-matrix $W_E[0:p, :] \in \R^{p \times d_{\mathrm{model}}}$
+of the trained embedding, take the DFT along the digit axis as in equation
+\eqref{eq:dft}, and plot the per-frequency power spectrum in Figure
+\ref{fig:fig6_fourier_singletask}.
+
+The addition and subtraction models concentrate power on a small set of
+\emph{additive-group} frequencies. The addition model has four dominant
+frequencies $\{17, 26, 35, 39\}$ (and their conjugates $\{p - k\}$),
+matching the small-$K$ structure predicted by \citet{nanda2023progress}.
+Subtraction also has a sparse additive-group spectrum but at
+\emph{different} frequencies $\{22, 30, 40\}$. The multiplication model
+has a much flatter additive-group spectrum --- the Fourier features it
+has learned do not live on the additive cyclic group of order $p$.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig6_fourier_singletask.pdf}
+\includegraphics[width=0.9\textwidth]{figures/fig6_fourier_singletask.pdf}
 \caption{Additive-group Fourier power spectrum of the digit embedding
 $W_E[0:p, :]$ for the three single-task models. Top: addition. Middle:
 subtraction. Bottom: multiplication. Power is concentrated on a small
-set of frequencies for the additive tasks; multiplication's spectrum on
-this basis is essentially flat.}
+set of frequencies for the additive tasks (different frequencies
+between add and sub); multiplication's spectrum on this basis is
+essentially flat.}
 \label{fig:fig6_fourier_singletask}
 \end{figure}
 
 \subsection{The multiplicative-group basis}
 
-Reordering the digit embeddings by powers of a primitive root of $p$ and
-taking the DFT on $(\Z/p\Z)^*$ yields the multiplicative-group spectrum
-shown in Figure \ref{fig:fig7_fourier_mult}. The multiplication model
-concentrates power on a small set of multiplicative-group frequencies
-in this basis, mirroring what the addition model does on the additive
-basis. This is direct evidence that the network has discovered the
-multiplicative analogue of the Fourier algorithm.
+Reordering the digit embeddings by powers of a primitive root of $p$
+and taking the DFT on $(\Z/p\Z)^*$ yields the multiplicative-group
+spectrum. Figure \ref{fig:fig7_fourier_mult} compares the two bases
+on the multiplication model's embedding: the additive basis is
+essentially flat, while the multiplicative basis exhibits sparse
+spike structure at frequencies $\{32, 33, 49, 50, \ldots\}$. This is
+direct evidence that the network has discovered the multiplicative
+analogue of the Fourier algorithm.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig7_fourier_mult.pdf}
+\includegraphics[width=0.85\textwidth]{figures/fig7_fourier_mult.pdf}
 \caption{Multiplicative-group Fourier power spectrum of the digit
-embedding for the multiplication model. Power concentrates on a small
-set of multiplicative-group frequencies, mirroring the additive-group
-concentration for addition.}
+embedding for the multiplication model. Same embedding matrix in
+both panels. \emph{Top:} additive basis $\Z/p\Z$ --- flat, no
+structure. \emph{Bottom:} multiplicative basis $(\Z/p\Z)^*$ ---
+sparse spikes at a small set of frequencies, mirroring the additive-
+group structure of the addition model.}
 \label{fig:fig7_fourier_mult}
 \end{figure}
 
-\subsection{Multi-task model: shared vs task-specific features}
+\subsection{Multi-task model: which features does it use?}
 
 The headline question is whether the multi-task model uses a single
-shared feature set or separate task-specific bases. Figure
-\ref{fig:fig8_feature_overlap} shows the cosine similarity between the
-per-frequency power spectra of the multi-task model and each of the
-single-task models, both on the additive and the multiplicative bases.
-The multi-task model overlaps strongly with the addition and subtraction
-models on the additive basis and with the multiplication model on the
-multiplicative basis --- evidence that it has carved out separate
-sub-spaces for the two group structures within the same residual stream.
+shared feature set or separate task-specific bases. At 75{,}000 steps
+the multi-task model has only partially generalised (Section
+\ref{sec:mt3}), so its representation is mid-development rather than
+in a clean steady state.
+
+Figure \ref{fig:fig8_feature_overlap} shows the cosine similarity
+between the per-frequency power spectra of the multi-task model and
+each single-task model, both on the additive and the multiplicative
+bases. Two observations:
+\begin{itemize}
+\item On the multiplicative basis, the multi-task model overlaps
+      \emph{more} with the addition and subtraction single-task models
+      ($\sim 0.6$) than with the multiplication single-task model
+      ($\sim 0.14$).
+\item On the additive basis, the multi-task model overlaps
+      \emph{most} with the multiplication single-task model
+      ($\sim 0.57$) and \emph{least} with the addition single-task
+      model ($\sim 0.05$).
+\end{itemize}
+Both observations follow from the diffuseness of the multi-task
+model's spectra at this training horizon: the cosine similarity is
+high between two spread-out vectors and low between a spread-out vector
+and a sparse one. Concretely, the multi-task model has not yet
+concentrated its additive-basis power onto a small set of frequencies
+(the way the single-task addition model has), and similarly for the
+multiplicative basis. We expect this picture to clarify with longer
+training; the cleanest predictions of the analysis (multi-task model
+shares the dominant-frequency set with the additive single-task models
+on the additive basis, and with the single-task multiplication model
+on the multiplicative basis) require a fully-grokked multi-task
+checkpoint that we do not yet have.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig8_feature_overlap.pdf}
 \caption{Cosine similarity between Fourier power spectra of the
-multi-task model and each single-task model. \emph{Left:} additive-group
-basis. \emph{Right:} multiplicative-group basis. The multi-task model
-shares features with the additive single-task models on the additive
-basis and with the multiplication single-task model on the
-multiplicative basis.}
+multi-task model and each single-task model, on the additive
+(\emph{left bars}) and the multiplicative (\emph{right bars}) basis.
+The spectra are taken at the partially-grokked checkpoint (test
+accuracy $\sim 0.5$); the multi-task model has not yet committed to
+either basis sharply, which is reflected in the overlap pattern.}
 \label{fig:fig8_feature_overlap}
 \end{figure}
 
-\subsection{Per-head ablations}
+\subsection{Per-head ablations on the multi-task model}
 
 Figure \ref{fig:fig9_head_ablation} shows the per-task loss increase
 when each of the four attention heads in the multi-task model is
-ablated in turn. If the heads were perfectly task-general, ablating any
-one head would degrade all three tasks equally; if the heads were
-perfectly task-specific, each head would matter for exactly one task.
-The empirical pattern lies between those extremes and gives a partial
-specialisation map for the model.
+ablated in turn. Three findings:
+\begin{enumerate}
+\item Multiplication is more sensitive to ablation of any single head
+      than addition or subtraction: every head's removal produces a
+      larger loss increase on \textsc{mul} (5.77--6.97) than on the
+      additive tasks (2.5--5.4).
+\item Head 0 is the most critical for addition and subtraction
+      (loss increases of 5.41 and 5.33 respectively, vs.\ $\sim 2.6$
+      for the other heads).
+\item Heads 0 and 3 are jointly critical for multiplication.
+\end{enumerate}
+The pattern is consistent with partial specialisation: head 0 is a
+``primarily additive'' head that all three tasks depend on, while
+heads 1 and 2 are nearly redundant for the additive tasks but still
+contribute to multiplication. None of the heads is task-exclusive ---
+ablating any single head degrades all three tasks --- but the
+contributions are quantitatively asymmetric.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/fig9_head_ablation.pdf}
-\caption{Per-head, per-task loss increase under attention-head ablation
-on the multi-task-3 model. Rows: heads. Columns: operations. Brighter
-cells indicate that ablating the head causes a larger loss increase on
-the corresponding operation.}
+\includegraphics[width=0.78\textwidth]{figures/fig9_head_ablation.pdf}
+\caption{Per-head, per-task loss increase under attention-head
+ablation on the multi-task model (test set). Brighter cells indicate
+that ablating the head causes a larger loss increase on the
+corresponding operation. Multiplication is uniformly harder hit.}
 \label{fig:fig9_head_ablation}
 \end{figure}

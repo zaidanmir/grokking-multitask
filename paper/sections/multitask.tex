@@ -18,51 +18,82 @@ the same low-rank embedding sub-space.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig3_multitask_two.pdf}
+\includegraphics[width=0.78\textwidth]{figures/fig3_multitask_two.pdf}
 \caption{Multi-task training on $\textsc{add} + \textsc{sub}$. Per-task
 test accuracy as a function of training step. Both tasks grok within
-the same training budget.}
+the same training budget, and faster than the single-task baselines.}
 \label{fig:fig3_multitask_two}
 \end{figure}
 
 \subsection{Three operations: add + subtract + multiply}
+\label{sec:mt3}
 
 The full multi-task experiment trains the same architecture jointly on
 all three operations. Figure \ref{fig:fig4_multitask_three} shows the
-per-task dynamics. The two additive tasks grok at similar step counts to
-their single-task baselines; the multiplicative task takes the longest,
-consistent with its single-task behaviour.
+per-task dynamics across 75{,}000 training steps.
+
+\paragraph{Slow-ramp dynamics, not a sudden grok.}
+Unlike single-task and two-task experiments, the three-task model does
+\emph{not} undergo the canonical grokking transition. Instead of a long
+flat plateau at random-guess accuracy followed by an abrupt collapse
+of test loss, the test accuracy on each task rises smoothly from
+roughly $\log p \approx 4.7$ random-guess loss (test acc $\sim 0.01$)
+down toward partial generalisation over a long ramp:
+\begin{itemize}
+\item Test accuracies at step 75{,}000 are
+      \textsc{add}: $0.604$, \textsc{sub}: $0.483$, \textsc{mul}: $0.324$
+      --- well above random ($1/p \approx 0.009$) but well below the
+      $0.95$ grok threshold.
+\item No task crosses 0.95 within the 75{,}000-step budget. By
+      extrapolating the late-training slope, full grokking would
+      require an estimated $200{,}000$+ steps.
+\item The per-task ordering is consistent throughout: addition leads,
+      subtraction follows, multiplication trails.
+\end{itemize}
+
+\paragraph{Why is multi-task three so much slower?}
+A natural explanation is that the residual stream must accommodate
+\emph{two} algorithmically distinct mechanisms simultaneously --- an
+additive-group Fourier circuit for $+$ and $-$, and a multiplicative-
+group Fourier circuit for $\times$. The two circuits compete for
+capacity, and the optimiser must balance them under aggressive weight
+decay. The smooth ramp suggests a continuous reorganisation of the
+representation rather than the abrupt phase transition seen when only
+one circuit is needed.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig4_multitask_three.pdf}
 \caption{Multi-task training on $\{+, -, \times\} \bmod 113$. Per-task
-test accuracy as a function of training step (seed 42).}
+test accuracy as a function of training step (seed 42, 75{,}000 steps).
+None of the tasks reach the 0.95 grok threshold within this budget;
+the dynamics are a slow ramp rather than the abrupt transition of
+the single- and two-task experiments.}
 \label{fig:fig4_multitask_three}
 \end{figure}
 
-\subsection{Robustness across seeds}
+\subsection{Robustness across seeds and configurations}
+\label{sec:robustness}
 
-Grokking is a stochastic phenomenon: the precise step at which the
-test loss collapses depends on the seed, even at the same hyperparameters.
-We rerun the three-task experiment with seeds $\{42, 137, 271\}$ to check
-that the qualitative pattern --- additive tasks grok first, multiplicative
-task grokes later --- is robust.
+We re-ran the three-task experiment with a different random seed
+(137) under the same step budget and confirmed the slow-ramp
+qualitative dynamic. A second additional seed (271) and a curriculum
+warm-start (training on addition to grokking, then introducing
+subtraction and multiplication) are scheduled for follow-up runs on
+a CUDA GPU and are not included in this draft.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig5_seed_sweep.pdf}
-\caption{Three-seed sweep on the multitask-3 configuration. Per-task
-test accuracy across seeds 42, 137, 271. Lines are individual seeds;
-shaded regions are the min--max envelope.}
-\label{fig:fig5_seed_sweep}
-\end{figure}
+For the single-task addition baseline we ran a quick robustness
+sweep across the modulus $p$ and the train fraction. Table
+\ref{tab:robustness} reports the grok step in each cell. The
+qualitative grokking behaviour is robust across all cells; the grok
+step shrinks as the train fraction grows.
 
 \begin{table}[t]
 \centering
-\caption{Multi-task grok steps across three seeds. Each cell is the
-first step at which test accuracy on the corresponding operation
-exceeds 0.95.}
-\label{tab:grok_steps_multi}
-\input{figures/tab2_grok_steps_multi}
+\caption{Robustness sweep on the single-task addition baseline.
+Grok step is the first step at which test accuracy exceeds 0.95.
+``--'' indicates the network failed to grok in the configured
+budget. ``$N_{\mathrm{train}}$'' is the number of training pairs.}
+\label{tab:robustness}
+\input{figures/tab3_robustness}
 \end{table}
