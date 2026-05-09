@@ -104,15 +104,17 @@ primary replicates. Final figures are written to `paper/figures/`.
 
 ## Hardware
 
-Designed to run on a 2024 Apple-silicon laptop using PyTorch's MPS
-backend. The single-task baselines and the two-task multitask
-experiment fit comfortably in ~30 minutes each. The three-task
-multitask experiments (`05`, `06_stage_b`, `07`) are much slower in
-wall-clock time on MPS (~5 hours each at 75k steps) — they benefit
-substantially from a CUDA GPU. CPU works but is ~4× slower for this
-small model size due to per-kernel launch overhead.
+Originally developed on a 2024 Apple-silicon laptop using PyTorch's MPS
+backend; the longer multi-task and robustness runs were finished on a
+Windows desktop with an RTX 4060 (CUDA). `src/train.py` auto-selects
+CUDA → MPS → CPU, so the same scripts run on either box without changes.
 
-### Running unfinished experiments on a CUDA box
+Wall-time budget on the 4060: 06_stage_b (65k) 25 min, 07 seed_137
+(75k) 29 min, 08_p59 (40k) 3 min — total ~1 hour vs the original ~16 h
+MPS estimate. The model is small enough (~300k params) that the GPU
+win is mostly per-step kernel-launch amortisation, not raw FLOPs.
+
+### Resuming on a fresh box
 
 Final checkpoints and per-step metric histories are committed in
 `runs/`, so the project is resumable across machines:
@@ -130,15 +132,6 @@ Runs whose `final.pt` is already in `runs/` are skipped. The
 `06_curriculum.py` script is also resumable mid-script: stage 1 of
 the curriculum (10k addition warm-start) is skipped if
 `runs/06_curriculum_stage_a_add/final.pt` exists.
-
-The remaining experiments after the laptop run is:
-- `05_multitask_three` (75k steps, multi-task add+sub+mul) — already
-  completed at 75k on MPS; partial generalisation (test acc ~0.5)
-  but did not fully grok.
-- `06_curriculum_stage_b_multi` (65k steps from a grokked-addition
-  warm-start)
-- `07_multitask_three_seed_137` (75k steps, additional seed)
-- `08_robustness_p59_tf30` (40k steps, small-p sweep cell)
 
 ## Citation
 

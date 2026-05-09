@@ -22,16 +22,16 @@ def _load_summary() -> dict:
     if not SUMMARY_PATH.exists():
         print(f"warning: {SUMMARY_PATH} does not exist; nothing to patch.", file=sys.stderr)
         sys.exit(0)
-    return json.loads(SUMMARY_PATH.read_text())
+    return json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
 
 
 def _patch(path: Path, replacements: list[tuple[str, str]]) -> None:
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     out = text
     for old, new in replacements:
         out = out.replace(old, new)
     if out != text:
-        path.write_text(out)
+        path.write_text(out, encoding="utf-8")
         print(f"patched {path.relative_to(PROJECT_ROOT)}")
 
 

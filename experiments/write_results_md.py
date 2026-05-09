@@ -31,7 +31,7 @@ def main() -> None:
     if not summary_path.exists():
         print(f"warning: {summary_path} does not exist; nothing to write.", file=sys.stderr)
         return
-    summary = json.loads(summary_path.read_text())
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
 
     lines: list[str] = []
     lines.append("# Experimental results\n")
@@ -65,7 +65,7 @@ def main() -> None:
             lines.append(f"| `{name}` | " + " | ".join(cells) + " |\n")
 
     out_path = PROJECT_ROOT / "runs" / "RESULTS.md"
-    out_path.write_text("".join(lines))
+    out_path.write_text("".join(lines), encoding="utf-8")
     print(f"wrote {out_path}")
 
 

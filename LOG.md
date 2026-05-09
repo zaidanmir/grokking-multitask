@@ -281,3 +281,88 @@ Power 2022 and gives a defensible contribution even without the GPU
 follow-ups. With the CUDA-box runs, fig 5 (seed sweep), the curriculum
 section, and a fully-grokked Fourier analysis can be added.
 
+## 2026-05-09 — GPU follow-up: 06 stage_b, 07 seed sweep, 08 p=59
+
+Picked up the queued experiments on the home desktop (Windows 11 +
+RTX 4060, 8 GB, driver 591.86, CUDA 13.1). The codepath swap from MPS
+to CUDA was zero-effort — `src/train.py:resolve_device` already prefers
+CUDA over MPS over CPU, so cloning the repo and pointing at a fresh
+venv was enough.
+
+Box came with no Python. Pulled Python 3.12.10 via winget, made `.venv`,
+installed the cu124 torch wheel + the rest of `requirements.txt`. A few
+small environment differences from the M2 surfaced:
+
+- `tests/test_pipeline.py` runs 12/13.
+  `test_multiplicative_fourier_recovers_character` flips on a numpy
+  argsort tie-break: a pure cosine in the multiplicative DFT has equal
+  power at `k=2` and `k=p-1-k=28`, and the dedup logic in
+  `identify_dominant_frequencies` folds with `min(k, p-k)` — correct
+  for additive spectra (length p) but wrong for multiplicative spectra
+  (length p-1). On numpy 2.4 / Windows the argsort happens to put k=28
+  first, so it gets folded as `min(28, 31-28)=3` instead of being
+  recognised as the partner of k=2. Latent bug, not a regression.
+  Worth a follow-up — likely also overcounts dominant frequencies in
+  the published table at `LOG.md` line 170 (the `{32, 33, 49, 50, …}`
+  pattern is suspicious).
+- Three orchestration scripts (`experiments/write_results_md.py`,
+  `experiments/patch_paper.py`, `experiments/plot_results.py`) used
+  `Path.write_text(...)` without `encoding=`, which on Windows defaults
+  to cp1252 and bombs on `≥` (U+2265). Patched in this commit.
+- `experiments/run_all.py --skip-existing` checks completion at the
+  module level, not the cell level, so adding `08_robustness_p59_tf30`
+  triggered a re-run of the three already-grokked 08 cells. Reproduced
+  their numbers within numerical noise. Cost ~22 min of wall time.
+
+### Wall-time budget on the 4060
+
+| run                          | steps | wall   |
+| ---------------------------- | ----: | -----: |
+| 06_curriculum_stage_b_multi  | 65k   | 24.7m  |
+| 07_multitask_three_seed_137  | 75k   | 28.5m  |
+| 08_robustness_p59_tf30       | 40k   |  2.7m  |
+| 08 reruns (p199 / p113_tf40 / p113_tf50) | 75k   | 22.6m |
+
+Total ~78 min wall — vs the original ~16h MPS estimate. The model is
+tiny enough (~300k params) that the GPU win is mostly amortising the
+per-step kernel launch cost, not raw FLOPs.
+
+### Experiment 06 stage_b — curriculum (NEW)
+
+65,000 steps from a grokked-addition warm-start, trained on the joint
+(+, −, ×) dataset. The result is sharper than I expected:
+
+- `+`: 0.998 from step 0 (warm-start carries cleanly)
+- `−`: groks at step ~9,000 (rides the same additive Fourier basis the
+  addition warm-start put in the residual stream)
+- `×`: never groks. Plateaus at 0.18-0.20 across 65k steps.
+
+This is a strengthening of the multi-task-three slow-ramp result. It's
+not just slow — once the additive basis is locked in, the multiplicative
+circuit specifically can't break in. The capacity-competition framing
+in the discussion gets direct experimental support: pre-allocating the
+residual stream to the additive basis crowds out × completely.
+
+### Experiment 07 — seed 137 (NEW)
+
+75,000 steps, seed 137. Same slow ramp, slightly higher partial accuracy
+than seed 42:
+
+| seed | + | − | × | overall |
+| ---- | ---: | ---: | ---: | ---: |
+| 42   | 0.604 | 0.483 | 0.324 | 0.471 |
+| 137  | 0.781 | 0.714 | 0.290 | 0.597 |
+
+Same qualitative dynamic — slow climb, no transition, additive tasks
+ahead of multiplicative — robust to seed.
+
+### Experiment 08 p=59, tf=30 — sparse-data cell (NEW)
+
+40,000 steps, train_n=1044. Did not grok; final test acc 0.087. Train
+acc is 1.000 by step 5,000 (memorisation), test accuracy never moves.
+Confirms the prediction in the original 15k-step run: 30% of `59 × 59`
+pairs is just too few examples for this recipe regardless of step
+budget. Useful negative-result cell for the robustness sweep — the
+slow-ramp is a multi-task-interference phenomenon, not generic
+under-training.
+

@@ -438,7 +438,7 @@ def tab1_grok_steps_single() -> None:
         cell = "--" if step is None else f"{step:,}"
         out += f"{label} & {cell} \\\\\n"
     out += "\\bottomrule\n\\end{tabular}\n"
-    (FIG_DIR / "tab1_grok_steps_single.tex").write_text(out)
+    (FIG_DIR / "tab1_grok_steps_single.tex").write_text(out, encoding="utf-8")
 
 
 def tab2_grok_steps_multi() -> None:
@@ -468,7 +468,7 @@ def tab2_grok_steps_multi() -> None:
                 cells.append(f"{s:,}")
         out += f"{label} & " + " & ".join(cells) + " \\\\\n"
     out += "\\bottomrule\n\\end{tabular}\n"
-    (FIG_DIR / "tab2_grok_steps_multi.tex").write_text(out)
+    (FIG_DIR / "tab2_grok_steps_multi.tex").write_text(out, encoding="utf-8")
 
 
 def tab3_robustness() -> None:
@@ -491,7 +491,7 @@ def tab3_robustness() -> None:
         cell = "--" if s is None else f"{s:,}"
         out += f"{label} & {n_train:,} & {cell} \\\\\n"
     out += "\\bottomrule\n\\end{tabular}\n"
-    (FIG_DIR / "tab3_robustness.tex").write_text(out)
+    (FIG_DIR / "tab3_robustness.tex").write_text(out, encoding="utf-8")
 
 
 # -----------------------------------------------------------------------------
@@ -522,7 +522,7 @@ def write_summary() -> None:
         if per_task:
             entry["per_task"] = per_task
         summary[name] = entry
-    (RUNS / "summary.json").write_text(json.dumps(summary, indent=2))
+    (RUNS / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 
 

@@ -13,7 +13,7 @@ wandb/
 runs/**/*.jsonl
 runs/**/checkpoints/
 runs/**/*.log
-runs/run_all*.log
+runs/run_all*
 checkpoints/
 
 # LaTeX intermediates
